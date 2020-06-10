@@ -24,7 +24,7 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
+    parser.add_argument("--epochs", type=int, default=200, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/yolov3-tiny.cfg", help="path to model definition file")
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = Darknet(opt.model_def).to(device)
+    model = Darknet(opt.model_def, img_size = opt.img_size).to(device)
     model.apply(weights_init_normal)
 
     # If specified we start from checkpoint
@@ -179,7 +179,5 @@ if __name__ == "__main__":
             #        f"checkpoints/yolov3_ckpt_%d.pth" % epoch)
             torch.save(model, f"checkpoints/yolov3_tiny_all_%d.pth" % epoch)
 
-    imod = torch.jit.trace(model, 
-                           torch.rand(1, 3, opt.img_size, opt.img_size))
     imod.save("./yolov3-tiny.pt")
 
