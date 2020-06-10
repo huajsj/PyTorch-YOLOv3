@@ -40,23 +40,69 @@ classes = load_classes(class_path)
 Tensor = torch.FloatTensor
 
 img = Image.open(img_path).resize((image_size, image_size))
-#img = np.asarray(img)
-img = np.expand_dims(img, 0)
-img = img.transpose((0, 3, 1, 2))
-img = Variable(torch.from_numpy(img.astype("float32")))
+if 1:
+    from torchvision import transforms
+    '''
+    my_preprocess = transforms.Compose([
+        #transforms.Resize(256),
+        #transforms.CenterCrop(image_size),
+        transforms.ToTensor()])
+        #transforms.Normalize(mean=[0.485, 0.456, 0.406],
+        #                 std=[0.229, 0.224, 0.225])])
+    '''
+    img = Image.open(img_path)
+    img = transforms.ToTensor()(img)
+    img, _ = pad_to_square(img, pad_value=0)# trainning dataset logic
+    img = resize(img, image_size)
+    img = img.unsqueeze(0)
+    #img = np.expand_dims(img, 0)
+    #img = torch.from_numpy(img.astype("float32"))
+    img = Variable(img.type(Tensor))
+    '''
+    class trainset(Dataset):
+        def __init__(self):
+            a = 2
 
-image_folder = "./data/samples2/"
-dataloader = DataLoader(
+        def __getitem__(self, index):
+            return "", img
+        def __len__(self):
+            return 1
+
+    dataloader = DataLoader(trainset(), 
+                            batch_size=1,
+                            shuffle=False,
+                            num_workers=1)
+    for i, (path, ig) in enumerate(dataloader):
+        img = Variable(ig.type(Tensor))
+        break
+    print("--------------------")
+    '''
+    print(img)
+else:
+    #img = np.expand_dims(img, 0)
+    #img = img.transpose((0, 3, 1, 2))
+    #img = Variable(torch.from_numpy(img.astype("float32")))
+    image_folder = "./data/samples2/"
+    idata = ImageFolder(image_folder, img_size=image_size),
+    dataloader = DataLoader(
         ImageFolder(image_folder, img_size=image_size),
         batch_size=1,
         shuffle=False,
         num_workers=1,
     )
 
-for i, (path, ig) in enumerate(dataloader):
-    img = Variable(ig.type(Tensor))
-    break
-
+    for i, (path, ig) in enumerate(dataloader):
+        img = Variable(ig.type(Tensor))
+        break
+    print(img)
+'''
+for i in range(img.shape[0]):
+    for j in range(img.shape[1]):
+        for k in range(img.shape[2]):
+            for l in range(img.shape[3]):
+                if (img[i][j][k][l] != 0):
+                    print(img[i][j][k][l])
+'''
 with torch.no_grad():
     detections = model(img)
     detections = non_max_suppression(detections,
